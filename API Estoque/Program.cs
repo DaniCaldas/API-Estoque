@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using API_Estoque.JWT;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http//*" + Environment.GetEnvironmentVariable("PORT") ?? "5000");
 builder.Logging.AddConsole();
 builder.Services.AddControllers();
 
