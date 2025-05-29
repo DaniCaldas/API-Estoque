@@ -16,7 +16,7 @@ Este é um projeto de API para gerenciamento de estoque desenvolvido com C#, ASP
 - Controle de categorias
 - Gerenciamento de movimentações de estoque (entrada/saída)
 - Filtros de Movimentações, Categorias e Produtos
-- Autenticação e autorização (opcional)
+- Autenticação e autorização
 
 ## Pré-requisitos
 
@@ -75,7 +75,15 @@ API-Estoque/
 ### Movimentações
 - `POST /FiltroMovimentacao/{filtro}` - Lista as movimentações conforme a pesquisa filtrada (todos, tipo, quantidade, produto)
 - `POST /FiltroMovimentacaoData/{filtro}` - Lista as movimentações conforme a pesquisa filtrada por datas(data, data_in)
+
+### Categorias
 - `POST /categorias` - Cria uma nova categoria
+- `GET /categorias` - Lista as Categorias
+
+### Usuario
+- `POST /login` - Faz login do usuario com email e senha
+- `POST /usuarios` - Cadastra um novo usuario
+- `PUT /usuarios` - Atualiza um usuario
 
 ## Documentação da API
 
