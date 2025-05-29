@@ -7,5 +7,6 @@
         public int Quantidade { get; set; }
         public int Produto_id { get; set; }
         public DateTime Criado_em { get; set; }
+        public int Resp_Movimentacao { get; set; }
     }
 }

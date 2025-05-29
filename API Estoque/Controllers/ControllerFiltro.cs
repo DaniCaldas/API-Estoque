@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using API_Estoque.Data;
 using API_Estoque.Model;
+using Microsoft.AspNetCore.Authorization;
 namespace API_Estoque.Controllers;
+
+[Authorize]
 public static class ControllerFiltro
 {
     class DataMovimentacao
@@ -22,7 +25,10 @@ public static class ControllerFiltro
         public DateOnly data_fim { get; set; }
     }
     public static void FiltroPesquisa(this WebApplication app) {
-        app.MapPost("/FiltroMovimentacao/", (string Filtro, [FromBody] Movimentacoes movimentacao, [FromServices] Database db) =>
+        
+        var grupo = app.MapGroup("/FiltroMovimentacao").RequireAuthorization();
+
+        grupo.MapPost("/", (string Filtro, [FromBody] Movimentacoes movimentacao, [FromServices] Database db) =>
         {
             List<Movimentacoes> retorno = null;
             switch (Filtro)
@@ -39,6 +45,9 @@ public static class ControllerFiltro
                 case "produto":
                     retorno = db.Movimentacoes.Where(s => s.Produto_id == movimentacao.Produto_id).ToList();
                     break;
+                case "responsavel":
+                    retorno = db.Movimentacoes.Where(s => s.Resp_Movimentacao == movimentacao.Resp_Movimentacao).ToList();
+                    break;
             }
             return retorno.ToList();
         });
@@ -46,7 +55,9 @@ public static class ControllerFiltro
 
     public static void FiltroPesquisaData(this WebApplication app)
     {
-        app.MapPost("/FiltroMovimentacaoData/", (string Filtro, [FromBody] DataMovimentacao data, [FromServices] Database db) =>
+        var grupo = app.MapGroup("/FiltroMovimentacaoData").RequireAuthorization();
+
+        grupo.MapPost("/", (string Filtro, [FromBody] DataMovimentacao data, [FromServices] Database db) =>
         {
             List<Movimentacoes> movimentacoes = null;
             switch (Filtro)
@@ -63,13 +74,16 @@ public static class ControllerFiltro
     }
 
     public static void FiltroProdutos(this WebApplication app) {
-        app.MapPost("/FiltroProdutos/", (string Filtro, [FromBody] Produtos produto, [FromServices] Database db) => {
+
+        var grupo = app.MapGroup("/FiltroProdutos").RequireAuthorization();
+
+        grupo.MapPost("/", (string Filtro, [FromBody] Produtos produto, [FromServices] Database db) => {
             List<Produtos> retorno = null;
 
             switch (Filtro)
             {
                 case "todos":
-                     retorno = db.Produtos.Order().ToList();
+                        retorno = db.Produtos.Order().ToList();
                     break;
                 case "nome":
                     retorno = db.Produtos.Where(s => s.Nome == produto.Nome).ToList();
@@ -93,7 +107,7 @@ public static class ControllerFiltro
             return retorno.ToList();
         });
 
-        app.MapPost("/FiltroProdutosExtra/", (string Filtro, ProdutoExtra produto, Database db) => { 
+        grupo.MapPost("/Extra", (string Filtro, ProdutoExtra produto, Database db) => { 
             List<Produtos> retorno = null;
 
             switch (Filtro)

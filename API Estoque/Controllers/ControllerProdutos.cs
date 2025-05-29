@@ -1,61 +1,83 @@
 ﻿using API_Estoque.Data;
 using API_Estoque.Model;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace API_Estoque.Controllers;
 
 public static class ControllerProdutos
 {
+    [Authorize]
     public static void EndPointProdutos(this WebApplication app) {
 
-        app.MapGet("/produtos", ([FromServices] Database data) =>
+        var grupo = app.MapGroup("/produtos").RequireAuthorization();
+
+        grupo.MapGet("/", ([FromServices] Database data) =>
         {
             var produtos = data.Produtos.OrderBy(s => s.Criado_em).ToList();
             return produtos;
         });
 
-        app.MapPost("/produtos", async ([FromBody] Produtos produto, [FromServices] Database db) => {
+        grupo.MapPost("/", async ([FromBody] Produtos produto, [FromServices] Database db) => {
             if (produto != null) {
                 var verifica = db.Produtos.FirstOrDefault(s => s.Nome.Equals(produto.Nome));
-                if (verifica == null)
+                if(verifica != null)
                 {
-                    var produtoNovo = db.Produtos.Add(produto);
-                    await db.SaveChangesAsync();
-                    Results.Ok(produtoNovo);
+                    return Results.Conflict("Produto ja cadastrado");
                 }
-                else
-                {
-                    Results.NotFound(401);
-                }
+                db.Produtos.Add(produto);
+                await db.SaveChangesAsync();
+                return Results.Created($"/produtos/{produto.Id}", produto);
             }
             else
             {
-                Results.BadRequest(400);
+                return Results.BadRequest(400);
             }
         });
 
-        app.MapPut("/produtos/", async (int id, [FromBody] Produtos produto, [FromServices] Database db) => {
+        grupo.MapPut("/", async (int id, [FromBody] Produtos produto, [FromServices] Database db) => {
             if (produto != null) {
                 var produtoUp = db.Produtos.FirstOrDefault(s => s.Id.Equals(id));
 
-                if (produtoUp != null) {
-                    produtoUp.Nome = produto.Nome;
-                    produtoUp.Preco = produto.Preco;
-                    produtoUp.Descricao = produto.Descricao;
-                    produtoUp.Quantidade = produto.Quantidade;
-                    produtoUp.CategoriaId = produto.CategoriaId;
-                    produtoUp.Criado_em = produto.Criado_em;
+                if(produtoUp == null)
+                {
+                    return Results.Conflict("Produto não cadastrado!");
                 }
+                produtoUp.Nome = produto.Nome;
+                produtoUp.Preco = produto.Preco;
+                produtoUp.Descricao = produto.Descricao;
+                produtoUp.Quantidade = produto.Quantidade;
+                produtoUp.CategoriaId = produto.CategoriaId;
+                produtoUp.Criado_em = produto.Criado_em;
+                
                 db.Produtos.Update(produtoUp);
                 await db.SaveChangesAsync();
-                Results.Ok(produtoUp);   
+                return Results.Created($"/produtos/{produto.Id}", produtoUp);   
             }
             else
             {
-                Results.BadRequest(400);
+                return Results.BadRequest(400);
+            }
+        });
+
+        grupo.MapDelete("/", async (int id, [FromServices] Database db) => {
+            if (id > 0)
+            {
+                var produto = db.Produtos.FirstOrDefault(s => s.Id.Equals(id));
+                if (produto != null)
+                {
+                    db.Produtos.Remove(produto);
+                    await db.SaveChangesAsync();
+                    return Results.Ok(produto);
+                }
+                else
+                {
+                    return Results.NotFound(404);
+                }
+            }
+            else
+            {
+               return Results.BadRequest(400);
             }
         });
     }
