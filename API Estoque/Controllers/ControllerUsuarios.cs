@@ -10,24 +10,21 @@ public static class ControllerUsuarios
         app.MapPost("/usuarios", async ([FromBody] Usuarios usuario, [FromServices] Database db) => { 
             if (usuario != null)
             {
-                var usuarioExiste = db.Usuarios.Where(s => s.Email == usuario.Email).ToList();
-                if(usuarioExiste == null)
+                var usuarioExiste = db.Usuarios.FirstOrDefault(s => s.Email.Equals(usuario.Email));
+                if(usuarioExiste != null)
                 {
-                    var novo = db.Usuarios.Add(usuario);
-                    await db.SaveChangesAsync();
-                    return Results.Ok(novo);
+                    return Results.Conflict("Usuario ja cadastrado");
                 }
-                else
-                {
-                    return Results.BadRequest(usuario);
-                }
+                db.Usuarios.Add(usuario);
+                await db.SaveChangesAsync();
+                return Results.Ok(usuario);
             }
             else {
                 return Results.BadRequest();
             }
         });
 
-        app.MapPut("/usuarios/", async (int id, [FromBody] Usuarios usuario, [FromServices] Database db) =>
+        app.MapPut("/usuarios", async (int id, [FromBody] Usuarios usuario, [FromServices] Database db) =>
         {
             if (usuario.Senha != null) { 
                 var usuarioExiste = db.Usuarios.FirstOrDefault(s => s.Id == id);
