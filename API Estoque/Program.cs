@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using API_Estoque.JWT;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http//*" + Environment.GetEnvironmentVariable("PORT") ?? "5000");
@@ -14,7 +15,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<Database>();
+builder.Services.AddDbContext<Database>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("NeonConnection")));
 builder.Services.AddTransient<Database>();
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddCors(options =>
