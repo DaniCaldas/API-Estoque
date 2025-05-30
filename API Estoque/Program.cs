@@ -9,7 +9,7 @@ using API_Estoque.JWT;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http//*" + Environment.GetEnvironmentVariable("PORT") ?? "5000");
+//builder.WebHost.UseUrls("http//*" + Environment.GetEnvironmentVariable("PORT") ?? "8080");
 builder.Logging.AddConsole();
 builder.Services.AddControllers();
 
